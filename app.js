@@ -3,21 +3,40 @@
 */
 'use strict';
 
-let app = require('express')();
-const PORT = 3000;
+const express = require('express');
+const mongoose = require('mongoose');
+const config = require('./config');
+const authRoutes = require('./server/routes/authRoutes');
+const productRoutes = require('./server/routes/productRoutes');
 
-// Set up Express.
-require('./server/setup/express')(app);
+const app = express();
 
-// Set up MongoDB.
-require('./server/setup/mongoose')();
+// Middleware
+app.use(express.json());
 
-// Set up routes.
-app.use('/', require('./server/routes'));
+// Connect to MongoDB
+mongoose.connect(config.mongodb.uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true,
+})
+  .then(() => {
+    console.log('Connected to MongoDB');
+    // Start the server
+    app.listen(3000, () => {
+      console.log('Server is running on port 3000');
+    });
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
+  });
 
-// Start app.
-app.listen(PORT, function() {
-  console.log('App now listening on port ' + PORT);
+// Routes
+app.use('/auth', authRoutes);
+app.use('/products', productRoutes);
+
+// Default route
+app.get('/', (req, res) => {
+  res.send('Welcome to the Lost and Found API');
 });
 
-module.exports = app;

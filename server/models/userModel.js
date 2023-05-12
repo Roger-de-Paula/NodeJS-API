@@ -27,6 +27,17 @@ userSchema.methods.comparePassword = async function (password) {
   }
 };
 
+userSchema.set('toJSON', {
+  transform: function (doc, ret) {
+    // Remove the password field when sending user data
+    delete ret.password;
+    return ret;
+  },
+});
+
 const User = mongoose.model('User', userSchema);
+
+// Create indexes after model compilation
+User.createIndexes();
 
 module.exports = User;
